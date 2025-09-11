@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crypto Smart-Vest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            // custom colors can be defined here if needed
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #F3F4F6; /* bg-gray-100 */
+        color: #1F2937; /* text-gray-800 */
+      }
+      .dark body {
+        background-color: #000000; /* Pure black for native feel */
+        color: #E5E7EB; /* text-gray-200 */
+      }
+      @keyframes price-up {
+        0% { background-color: transparent; }
+        25% { background-color: rgba(34, 197, 94, 0.3); } /* green-500 with opacity */
+        100% { background-color: transparent; }
+      }
+      @keyframes price-down {
+        0% { background-color: transparent; }
+        25% { background-color: rgba(239, 68, 68, 0.3); } /* red-500 with opacity */
+        100% { background-color: transparent; }
+      }
+      .price-flash-up {
+        animation: price-up 1.5s ease-out;
+      }
+      .price-flash-down {
+        animation: price-down 1.5s ease-out;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.18.0",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.2.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
