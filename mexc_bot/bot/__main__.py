@@ -40,7 +40,7 @@ def main(argv=None) -> int:
 
     if cfg.mode == "live":
         log.warning("LIVE MODE - real money is at risk")
-        ex = LiveExchange(cfg.api_key, cfg.api_secret)
+        ex = LiveExchange(cfg.api_key, cfg.api_secret, cfg.risk.margin_mode)
     else:
         log.info("PAPER MODE - simulated balance %.2f USDT", cfg.paper.start_balance)
         ex = PaperExchange(cfg.paper.start_balance, cfg.risk.taker_fee, cfg.paper.slippage_pct,

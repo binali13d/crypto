@@ -23,11 +23,12 @@ timeframes:
 risk:
   margin_per_trade_pct: 2.0      # 2% من الرصيد كهامش لكل صفقة
   sizing_mode: margin            # margin: الهامش = 2% | risk: الخسارة عند الوقف = 2%
+  margin_mode: cross             # cross = هامش متبادل | isolated = هامش معزول
   normal_leverage: 20            # الرافعة العادية
   high_confidence_leverage: 50   # الرافعة للصفقات عالية الثقة (A+)
   enable_high_leverage: true
   maintenance_margin_rate: 0.005 # هامش الصيانة التقريبي لحساب سعر التصفية
-  liquidation_safety: 0.7        # الوقف يجب أن يكون قبل 70% من مسافة التصفية
+  liquidation_safety: 0.7        # أقصى مسافة للوقف = 70% من (1/الرافعة) -> خسارة الوقف ≤ 70% من هامش الصفقة
   max_open_positions: 3
   max_daily_loss_pct: 6.0        # إيقاف الدخول لبقية اليوم عند خسارة 6%
   max_consecutive_losses: 3      # بعد 3 خسائر متتالية...

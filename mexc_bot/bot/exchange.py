@@ -125,9 +125,10 @@ class BaseExchange:
 
 
 class LiveExchange(BaseExchange):
-    """Real orders on MEXC USDT-M perpetual futures. Isolated margin, one-way mode."""
+    """Real orders on MEXC USDT-M perpetual futures, one-way mode.
+    margin_mode: 'cross' (متبادل, MEXC openType=2) or 'isolated' (معزول, openType=1)."""
 
-    def __init__(self, api_key: str, api_secret: str):
+    def __init__(self, api_key: str, api_secret: str, margin_mode: str = "cross"):
         import ccxt
 
         client = ccxt.mexc({
@@ -137,9 +138,12 @@ class LiveExchange(BaseExchange):
             "options": {"defaultType": "swap"},
         })
         super().__init__(client)
+        self.margin_mode = margin_mode
+        self.open_type = 2 if margin_mode == "cross" else 1
 
     def setup(self) -> None:
         self.load_markets()
+        log.info("margin mode: %s (openType=%d)", self.margin_mode, self.open_type)
         try:
             self.client.set_position_mode(False)  # one-way
             log.info("position mode set to one-way")
@@ -166,17 +170,26 @@ class LiveExchange(BaseExchange):
         return out
 
     def _set_leverage(self, symbol: str, side: str, leverage: int) -> None:
-        try:
-            self.client.set_leverage(leverage, symbol, {"openType": 1, "positionType": 1 if side == "long" else 2})
-        except Exception as e:  # noqa: BLE001
-            log.debug("set_leverage %s: %s", symbol, e)
+        # In cross mode MEXC takes the leverage from this setting (not from the order),
+        # so it is applied to both sides of the symbol before every entry.
+        for pos_type in (1, 2):
+            try:
+                self.client.set_leverage(leverage, symbol, {"openType": self.open_type, "positionType": pos_type})
+            except Exception as e:  # noqa: BLE001
+                level = logging.WARNING if pos_type == (1 if side == "long" else 2) else logging.DEBUG
+                log.log(level, "set_leverage %s %sx failed: %s", symbol, leverage, e)
+
+    def _margin_params(self, leverage: int) -> dict:
+        params = {"openType": self.open_type}
+        if self.open_type == 1:  # MEXC requires leverage on isolated orders only
+            params["leverage"] = int(leverage or 20)
+        return params
 
     def open_position(self, symbol: str, side: str, contracts: float, leverage: int,
                       stop: float, take_profit: float) -> float:
         self._set_leverage(symbol, side, leverage)
         params = {
-            "openType": 1,  # isolated
-            "leverage": int(leverage),
+            **self._margin_params(leverage),
             "stopLossPrice": float(self.client.price_to_precision(symbol, stop)),
             "takeProfitPrice": float(self.client.price_to_precision(symbol, take_profit)),
             "clientOrderId": f"bot{uuid.uuid4().hex[:20]}",
@@ -191,7 +204,7 @@ class LiveExchange(BaseExchange):
 
     def close_position(self, symbol: str, side: str, contracts: float, leverage: int) -> float:
         order_side = "sell" if side == "long" else "buy"
-        params = {"reduceOnly": True, "openType": 1, "leverage": int(leverage or 20)}
+        params = {"reduceOnly": True, **self._margin_params(leverage)}
         self.client.create_order(symbol, "market", order_side, contracts, None, params)
         return self.last_price(symbol)
 

@@ -29,6 +29,7 @@ class TimeframesCfg:
 class RiskCfg:
     margin_per_trade_pct: float = 2.0
     sizing_mode: str = "margin"  # margin | risk
+    margin_mode: str = "cross"  # cross (متبادل) | isolated (معزول)
     normal_leverage: int = 20
     high_confidence_leverage: int = 50
     enable_high_leverage: bool = True
@@ -156,6 +157,8 @@ def validate(cfg: Config) -> None:
         raise ValueError("Live mode requires MEXC_API_KEY and MEXC_API_SECRET in .env")
     if cfg.strategy.direction not in ("both", "long", "short"):
         raise ValueError("strategy.direction must be both|long|short")
+    if cfg.risk.margin_mode not in ("cross", "isolated"):
+        raise ValueError("risk.margin_mode must be cross|isolated")
     if cfg.risk.sizing_mode not in ("margin", "risk"):
         raise ValueError("risk.sizing_mode must be margin|risk")
     if not 0 < cfg.risk.margin_per_trade_pct <= 100:

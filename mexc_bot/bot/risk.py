@@ -26,8 +26,11 @@ def liquidation_distance(leverage: float, mmr: float) -> float:
 
 
 def choose_leverage(grade: str, stop_pct: float, cfg: RiskCfg, market_max_leverage: Optional[int] = None):
-    """Pick 50x for A+ setups, otherwise 20x, and make sure the stop loss is
-    comfortably *before* the liquidation price. Returns (leverage, note) or (None, reason)."""
+    """Pick 50x for A+ setups, otherwise 20x. The stop distance must stay within
+    ``liquidation_safety`` of (1/leverage - mmr): in isolated mode this keeps the stop
+    well before liquidation; in cross mode it caps the loss at the stop to ~70% of the
+    trade's margin (cross liquidation itself is much further away, backed by the whole
+    balance). Returns (leverage, note) or (None, reason)."""
     candidates = []
     if grade == "A+" and cfg.enable_high_leverage:
         candidates.append(int(cfg.high_confidence_leverage))
@@ -74,6 +77,11 @@ def size_order(equity: float, price: float, stop_pct: float, leverage: int, cont
     )
 
 
-def liquidation_price(entry: float, side: str, leverage: int, mmr: float) -> float:
-    d = liquidation_distance(leverage, mmr)
-    return entry * (1 - d) if side == "long" else entry * (1 + d)
+def liquidation_price(entry: float, side: str, leverage: int, mmr: float,
+                      margin_mode: str = "isolated", equity: float = 0.0, notional: float = 0.0) -> float:
+    if margin_mode == "cross" and notional > 0:
+        # approximate: the whole account balance backs the position
+        d = max(0.0, equity / notional - mmr)
+    else:
+        d = liquidation_distance(leverage, mmr)
+    return max(0.0, entry * (1 - d)) if side == "long" else entry * (1 + d)

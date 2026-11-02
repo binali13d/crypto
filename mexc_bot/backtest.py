@@ -91,8 +91,8 @@ def run(df: pd.DataFrame, cfg, start_equity: float = 1000.0, symbol: str = "BT")
         nonlocal equity
         qty = pos["qty"] * qty_frac
         pnl = pos["s"] * (px - pos["entry"]) * qty - fee * (px + pos["entry"]) * qty
-        # isolated margin: a loss can never exceed the margin of that portion
-        pnl = max(pnl, -pos["margin"] * qty_frac)
+        if rk.margin_mode == "isolated":  # isolated: a loss can never exceed that portion's margin
+            pnl = max(pnl, -pos["margin"] * qty_frac)
         equity += pnl
         pos["qty"] -= qty
         pos["margin"] -= pos["margin"] * qty_frac
@@ -105,7 +105,10 @@ def run(df: pd.DataFrame, cfg, start_equity: float = 1000.0, symbol: str = "BT")
     for i in range(250, len(ltf)):
         if pos is not None:
             s = pos["s"]
-            liq = pos["entry"] * (1 - s * liquidation_distance(pos["lev"], rk.maintenance_margin_rate))
+            if rk.margin_mode == "isolated":
+                liq = pos["entry"] * (1 - s * liquidation_distance(pos["lev"], rk.maintenance_margin_rate))
+            else:  # cross: the whole balance backs the position
+                liq = pos["entry"] * (1 - s * max(0.0, equity / (pos["qty"] * pos["entry"]) - rk.maintenance_margin_rate))
             adverse = L[i] if s == 1 else H[i]
             favorable = H[i] if s == 1 else L[i]
             done = False

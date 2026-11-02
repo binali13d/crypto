@@ -97,7 +97,8 @@ class Trader:
         self.notifier.send(
             f"🤖 بدأ البوت — الوضع: {mode}\n"
             f"الرصيد: {eq:.2f} USDT\n"
-            f"الهامش لكل صفقة: {self.cfg.risk.margin_per_trade_pct}% | الرافعة: {self.cfg.risk.normal_leverage}x "
+            f"الهامش لكل صفقة: {self.cfg.risk.margin_per_trade_pct}% "
+            f"({'متبادل' if self.cfg.risk.margin_mode == 'cross' else 'معزول'}) | الرافعة: {self.cfg.risk.normal_leverage}x "
             f"(A+: {self.cfg.risk.high_confidence_leverage}x)\n"
             f"الاتجاه: {self.state['direction']} | العملات: {len(self.symbols)}\n"
             f"اكتب: مساعدة"
@@ -283,11 +284,13 @@ class Trader:
         }
         self.state["positions"][sig.symbol] = pos
         self.save_state()
-        liq = liquidation_price(fill, sig.side, lev, self.cfg.risk.maintenance_margin_rate)
+        liq = liquidation_price(fill, sig.side, lev, self.cfg.risk.maintenance_margin_rate,
+                                self.cfg.risk.margin_mode, equity, plan.notional)
+        mm_ar = "متبادل" if self.cfg.risk.margin_mode == "cross" else "معزول"
         self.notifier.send(
             f"🚀 صفقة جديدة {SIDE_AR[sig.side]} {sig.symbol}\n"
             f"التقييم: {sig.score:.0f}/100 ({sig.grade}) | المحفز: {sig.trigger}\n"
-            f"الدخول: {_fmt(fill)} | الرافعة: {lev}x | الهامش: {plan.margin:.2f} USDT\n"
+            f"الدخول: {_fmt(fill)} | الرافعة: {lev}x | الهامش ({mm_ar}): {plan.margin:.2f} USDT\n"
             f"وقف الخسارة: {_fmt(stop)} ({risk_frac*100:.2f}%) | التصفية≈ {_fmt(liq)}\n"
             f"الهدف 1: {_fmt(tp1)} | الهدف 2: {_fmt(tp2)}\n"
             f"الخسارة القصوى≈ {plan.risk_usdt:.2f} USDT\n"
