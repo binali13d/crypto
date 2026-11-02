@@ -58,6 +58,7 @@ class Trader:
             "cooldown": {},  # symbol -> ts until which no new entry
             "stats": {"trades": 0, "wins": 0, "losses": 0, "pnl": 0.0},
             "recent": [],
+            "mode": cfg.mode,
         }
         self._load_state()
 
@@ -66,7 +67,14 @@ class Trader:
         if self.state_file.exists():
             try:
                 saved = json.loads(self.state_file.read_text(encoding="utf-8"))
+                if saved.get("mode", self.cfg.mode) != self.cfg.mode:
+                    # never mix paper positions/stats with live ones (or the reverse)
+                    backup = self.state_file.with_name(f"state.{saved.get('mode')}.bak.json")
+                    self.state_file.replace(backup)
+                    log.warning("mode changed %s -> %s: old state moved to %s", saved.get("mode"), self.cfg.mode, backup)
+                    return
                 self.state.update(saved)
+                self.state["mode"] = self.cfg.mode
                 log.info("state restored: %d managed positions", len(self.state["positions"]))
             except Exception as e:  # noqa: BLE001
                 log.error("could not read state file: %s", e)

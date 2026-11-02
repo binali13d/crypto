@@ -63,7 +63,7 @@ loop:
   scan_delay_seconds: 5      # انتظار بعد إغلاق الشمعة قبل الفحص
 
 paper:
-  start_balance: 1000
+  start_balance: 100
   slippage_pct: 0.03
 
 telegram:

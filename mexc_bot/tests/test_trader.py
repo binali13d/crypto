@@ -94,3 +94,13 @@ def test_cycle_runs_and_state_persists(trader, tmp_path):
     assert (tmp_path / "state.json").exists()
     assert "📊" in t.handle_command("تحليل BTC")
     assert "الحالة" in t.status_text()
+
+
+def test_switching_paper_to_live_does_not_reuse_paper_state(tmp_path):
+    import json
+    from bot.trader import Trader as T
+    (tmp_path / "state.json").write_text(json.dumps({"mode": "paper", "positions": {"X": {}}, "stats": {"trades": 9}}))
+    cfg = Config(); cfg.data_dir = str(tmp_path); cfg.mode = "live"
+    t = T(cfg, PaperExchange(100, client=FakeClient()))
+    assert t.state["positions"] == {} and t.state["stats"]["trades"] == 0
+    assert (tmp_path / "state.paper.bak.json").exists()
