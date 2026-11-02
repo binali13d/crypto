@@ -1,0 +1,1 @@
+"""MEXC futures trading bot."""

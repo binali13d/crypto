@@ -1,0 +1,13 @@
+services:
+  mexc-bot:
+    build: .
+    container_name: mexc-bot
+    restart: always          # يعيد التشغيل تلقائياً عند أي توقف أو إعادة تشغيل للسيرفر
+    env_file: .env
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./data:/app/data     # حالة البوت وسجل الصفقات
+      - ./logs:/app/logs
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

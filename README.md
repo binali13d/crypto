@@ -18,3 +18,9 @@ View your app in AI Studio: https://ai.studio/apps/drive/1PMZUc8s4qpxHEhwEXMhv6b
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## 🤖 MEXC Futures Trading Bot
+
+A 24/7 automated futures trading bot for MEXC lives in [`mexc_bot/`](mexc_bot/README.md)
+(Arabic guide inside): 2% margin per trade, 20x leverage (50x only for A+ setups with a
+liquidation-safety check), long & short, Telegram control in Arabic/English, paper mode and backtester.

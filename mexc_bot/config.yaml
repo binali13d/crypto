@@ -1,0 +1,74 @@
+# ===================== إعدادات بوت عقود MEXC =====================
+# paper = تجريبي (أموال وهمية، أسعار حقيقية) | live = حقيقي
+# يمكن تجاوزه بمتغير البيئة BOT_MODE
+mode: paper
+
+symbols:
+  auto: true                 # اختيار تلقائي لأعلى العملات سيولة
+  top_n: 15                  # عدد العملات التي يراقبها
+  min_quote_volume_24h: 50000000   # حد أدنى لحجم التداول اليومي (USDT)
+  list:                      # تُستخدم عندما auto: false (أو كاحتياط)
+    - BTC/USDT:USDT
+    - ETH/USDT:USDT
+    - SOL/USDT:USDT
+    - XRP/USDT:USDT
+    - DOGE/USDT:USDT
+  exclude: []                # عملات لا تريد التداول عليها
+
+timeframes:
+  signal: 15m                # فريم الدخول
+  trend: 1h                  # فريم الاتجاه
+  macro: 4h                  # الاتجاه العام
+
+risk:
+  margin_per_trade_pct: 2.0      # 2% من الرصيد كهامش لكل صفقة
+  sizing_mode: margin            # margin: الهامش = 2% | risk: الخسارة عند الوقف = 2%
+  normal_leverage: 20            # الرافعة العادية
+  high_confidence_leverage: 50   # الرافعة للصفقات عالية الثقة (A+)
+  enable_high_leverage: true
+  maintenance_margin_rate: 0.005 # هامش الصيانة التقريبي لحساب سعر التصفية
+  liquidation_safety: 0.7        # الوقف يجب أن يكون قبل 70% من مسافة التصفية
+  max_open_positions: 3
+  max_daily_loss_pct: 6.0        # إيقاف الدخول لبقية اليوم عند خسارة 6%
+  max_consecutive_losses: 3      # بعد 3 خسائر متتالية...
+  pause_after_losses_minutes: 120  # ...توقف عن الدخول ساعتين
+  symbol_cooldown_minutes: 45    # انتظار بعد إغلاق صفقة على نفس العملة
+  max_hold_hours: 36             # إغلاق الصفقة إذا طالت أكثر من ذلك
+  taker_fee: 0.0002              # رسوم MEXC للعقود (0.02%)
+
+strategy:
+  direction: both            # both = لونج وشورت | long = لونج فقط | short = شورت فقط
+  min_score: 65              # أقل تقييم للدخول (من 100) -> رافعة 20
+  high_conf_score: 85        # تقييم الصفقة عالية الثقة -> رافعة 50
+  adx_min: 22
+  breakout_volume_ratio: 1.5
+  volume_confirm_ratio: 1.3
+  max_extension_atr: 2.5     # لا تطارد السعر إذا ابتعد كثيراً عن EMA21
+  swing_lookback: 10
+  min_stop_atr: 1.0
+  max_stop_atr: 2.5
+  funding_crowded: 0.0005    # تمويل > 0.05% يعني ازدحام في نفس الاتجاه
+  candles: 300
+
+exits:
+  tp1_r: 1.5                 # الهدف الأول = 1.5 ضعف المخاطرة
+  tp1_close_pct: 50          # إغلاق 50% عند الهدف الأول
+  tp2_r: 3.0                 # الهدف النهائي = 3 أضعاف المخاطرة
+  breakeven_buffer_pct: 0.1  # نقل الوقف لنقطة الدخول + 0.1% بعد الهدف الأول
+  trail_atr: 2.0             # وقف متحرك بعد الهدف الأول
+
+loop:
+  manage_seconds: 10         # كل كم ثانية يراجع الصفقات المفتوحة
+  scan_delay_seconds: 5      # انتظار بعد إغلاق الشمعة قبل الفحص
+
+paper:
+  start_balance: 1000
+  slippage_pct: 0.03
+
+telegram:
+  enabled: true              # يعمل فقط إذا وضعت TELEGRAM_BOT_TOKEN و TELEGRAM_CHAT_ID
+
+logging:
+  level: INFO
+  dir: logs
+data_dir: data
